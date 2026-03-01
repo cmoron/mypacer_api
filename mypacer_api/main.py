@@ -45,7 +45,7 @@ async def health_check():
 
 
 @app.get("/health/ready")
-async def readiness_check():
+def readiness_check():
     """
     Readiness check endpoint with database connectivity verification.
 
@@ -97,7 +97,7 @@ async def generate_table(params: TableParameters):
 
 
 @app.get("/get_athletes")
-async def get_athletes(name: str, limit: int = 25, offset: int = 0):
+def get_athletes(name: str, limit: int = 25, offset: int = 0):
     """
     Retrieves athlete information from the local database based on the provided athlete name.
 
@@ -137,7 +137,7 @@ async def get_athletes(name: str, limit: int = 25, offset: int = 0):
 
 
 @app.get("/get_athletes_from_db")
-async def get_athletes_from_db(name: str, limit: int = 25, offset: int = 0):
+def get_athletes_from_db(name: str, limit: int = 25, offset: int = 0):
     """
     Retrieves athlete information from the local database based on the provided athlete name.
 
@@ -163,7 +163,7 @@ async def get_athletes_from_db(name: str, limit: int = 25, offset: int = 0):
 
 
 @app.get("/get_athlete_records")
-async def get_athlete_records(ident) -> dict:
+def get_athlete_records(ident) -> dict:
     """
     Retrieves athlete records from the 'bases.athle.fr' website based on the provided athlete ID.
 
@@ -177,7 +177,7 @@ async def get_athlete_records(ident) -> dict:
 
 
 @app.get("/database_status")
-async def database_status():
+def database_status():
     """
     Endpoint to retrieve information about the database state, including
     the number of clubs, the number of athletes, and the date of the last update.

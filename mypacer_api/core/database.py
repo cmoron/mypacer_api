@@ -40,7 +40,7 @@ def get_connection_pool():
             "port": os.getenv("POSTGRES_PORT", "5432"),
         }
 
-        _connection_pool = pool.SimpleConnectionPool(
+        _connection_pool = pool.ThreadedConnectionPool(
             MIN_CONNECTIONS, MAX_CONNECTIONS, **db_config
         )
 
