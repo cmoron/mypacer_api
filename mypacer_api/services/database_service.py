@@ -33,8 +33,7 @@ def get_database_status():
         cursor.execute("SELECT COUNT(*) FROM athletes;")
         num_athletes = cursor.fetchone()[0]
 
-        cursor.execute(
-            """
+        cursor.execute("""
         SELECT GREATEST(
             MAX(last_vacuum),
             MAX(last_autovacuum),
@@ -43,8 +42,7 @@ def get_database_status():
         ) AS last_update
         FROM pg_stat_all_tables
         WHERE relname = 'athletes';
-        """
-        )
+        """)
         last_update = cursor.fetchone()[0]
 
         return {
