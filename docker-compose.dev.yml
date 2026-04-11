@@ -19,10 +19,14 @@ services:
       context: .
       target: dev
       args:
-        HOST_UID: ${HOST_UID}
-        HOST_GID: ${HOST_GID}
+        HOST_UID: ${HOST_UID:-1000}
+        HOST_GID: ${HOST_GID:-1000}
     container_name: mypacer-api-dev
     env_file: .env
+    environment:
+      # Override POSTGRES_HOST from .env: inside this container, the Postgres
+      # service is reachable via the compose service name, not localhost.
+      POSTGRES_HOST: postgres
     ports:
       - "8000:8000"
     depends_on:

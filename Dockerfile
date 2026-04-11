@@ -60,7 +60,7 @@ CMD ["uvicorn", "mypacer_api.main:app", "--host", "0.0.0.0", "--port", "8000"]
 # Development image (inherits from prod)
 # Overrides the CMD for hot-reloading.
 # Source code is provided via a volume mount in docker-compose.dev.yml.
-# =================================================_dev.yml
+# =============================================================================
 FROM prod AS dev
 
 CMD ["uvicorn", "mypacer_api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
