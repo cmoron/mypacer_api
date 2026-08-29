@@ -19,9 +19,9 @@ lint: ## Check code quality (ruff + mypy)
 	@echo "\nType checking with mypy..."
 	mypy mypacer_api/ --ignore-missing-imports
 
-format: ## Format code with black and ruff
-	@echo "Formatting with black..."
-	black .
+format: ## Format code with ruff
+	@echo "Formatting with ruff..."
+	ruff format .
 	@echo "Organizing imports with ruff..."
 	ruff check --fix --select I .
 
@@ -39,7 +39,7 @@ clean: ## Clean up temporary files
 ci: ## Simulate the CI pipeline locally
 	@echo "--- CI Simulation ---"
 	@echo "\n1. Checking formatting..."
-	black --check --diff . || (echo "❌ Formatting check failed" && exit 1)
+	ruff format --check --diff . || (echo "❌ Formatting check failed" && exit 1)
 	@echo "✅ Formatting OK"
 	@echo "\n2. Linting..."
 	ruff check . || (echo "❌ Linter check failed" && exit 1)
