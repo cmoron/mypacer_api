@@ -108,7 +108,7 @@ def parse_bases_athle_record_page(soup: bs) -> Dict[float, float]:
     # Extract athlete records
     athlete_records: Dict[float, float] = {}
     for row in table.find_all("tr", recursive=False):
-        classes = row.get("class", None) or []
+        classes: str | list[str] = row.get("class", None) or []
 
         # Skip detail rows
         if "detail-row" in classes:
