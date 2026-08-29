@@ -6,7 +6,6 @@
 [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=cmoron_mypacer_api&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=cmoron_mypacer_api)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=cmoron_mypacer_api&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=cmoron_mypacer_api)
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=cmoron_mypacer_api&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=cmoron_mypacer_api)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 
@@ -16,8 +15,8 @@ The MyPacer API is the engine behind the MyPacer ecosystem. It serves two main f
 
 1.  **Pacing Engine**: A mathematical core that generates dynamic pace tables based on user constraints (min/max pace, increments, custom distances).
 2.  **FFA Data Gateway**: A bridge to French Athletics Federation data (`athle.fr`).
-    * **Smart Search**: Exposes a fuzzy-search endpoint over a local database of athletes (populated by the scraper) to solve the usability issues of the official website.
-    * **Live Records**: Fetches and parses athlete personal records (PRs) on-demand for real-time visualization.
+    - **Smart Search**: Exposes a fuzzy-search endpoint over a local database of athletes (populated by the scraper) to solve the usability issues of the official website.
+    - **Live Records**: Fetches and parses athlete personal records (PRs) on-demand for real-time visualization.
 
 ## Prerequisites
 
@@ -57,6 +56,7 @@ HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose -f docker-compose.dev.yml up 
 ```
 
 Once the container is built, you can start and stop it with:
+
 ```bash
 # To start
 HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose -f docker-compose.dev.yml up
@@ -66,10 +66,10 @@ HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose -f docker-compose.dev.yml up 
 ```
 
 This configuration:
+
 - Mounts your source code as a volume for live reloading.
 - Runs uvicorn with the `--reload` flag.
 - Ensures the container user has the correct permissions on the mounted source code.
-
 
 ## Local Installation (Without Docker)
 
@@ -182,6 +182,7 @@ POSTGRES_PASSWORD=your_secure_password
 ### Database Schema Management
 
 **Schema Ownership:**
+
 - ✅ **Source of truth**: `mypacer_infra/init-db/01-init-schema.sql` (production/staging)
 - 📋 **Local copy**: `db/init.sql` (development only, for autonomous dev)
 
@@ -207,11 +208,13 @@ The development environment automatically loads test data from `db/02-test-data.
 - **~50 athletes** - Diverse profiles (male/female, different birth years, nationalities including FRA, MAR, GER, CGO)
 
 This data is extracted from a production backup and allows you to:
+
 - Test search functionality with realistic names
 - Test filtering by gender, nationality, birth year
 - Develop features without requiring the scraper to run
 
 **The test data includes:**
+
 - Clubs: CA MONTREUIL 93, CLERMONT AUVERGNE ATHLETISME, RACING CF (PARIS), etc.
 - Athletes: ranging from 1934 to 1996 birth years
 - Mix of ~35 male and ~15 female athletes
@@ -281,7 +284,7 @@ If port 8000 or 5432 is already in use, modify the port mappings in `docker-comp
 
 ```yaml
 ports:
-  - "8001:8000"  # Use port 8001 on host instead
+  - "8001:8000" # Use port 8001 on host instead
 ```
 
 ### Database Connection Issues
