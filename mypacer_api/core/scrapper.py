@@ -3,11 +3,22 @@ Module containing functions for scraping running records from the World Athletic
 """
 
 import re
+import time
 from typing import Dict
 
 import requests
 from bs4 import BeautifulSoup as bs
 from fastapi import HTTPException
+
+# Connexion TLS réutilisée d'un clic à l'autre (~0,3 s de handshake sur la prod).
+SESSION = requests.Session()
+SESSION.headers["User-Agent"] = "MyPacer/1.0 (+https://mypacer.fr; contact@mypacer.fr)"
+
+# Les records changent au plus quelques fois par saison : un athlète déjà
+# consulté (comparaison, retour arrière) ne repasse pas par athle.fr.
+CACHE_TTL_SECONDS = 24 * 3600
+CACHE_MAX_ENTRIES = 5000
+_records_cache: dict[str, tuple[float, Dict[float, float]]] = {}
 
 
 def ba_convert_time_to_seconds(time_str: str) -> float:
@@ -152,10 +163,20 @@ def scrap_athlete_records(url: str) -> Dict[float, float]:
     Returns:
     dict: A dictionary containing athlete data, including the athlete's name,
     """
-    response = requests.get(url, timeout=10)
-    if response.status_code == 200:
-        soup = bs(response.text, "html.parser")
-        return parse_bases_athle_record_page(soup)
-    raise HTTPException(
-        status_code=response.status_code, detail="Failed to make an external request"
-    )
+    cached = _records_cache.get(url)
+    if cached and time.monotonic() - cached[0] < CACHE_TTL_SECONDS:
+        return cached[1]
+
+    response = SESSION.get(url, timeout=10)
+    if response.status_code != 200:
+        raise HTTPException(
+            status_code=response.status_code,
+            detail="Failed to make an external request",
+        )
+    records = parse_bases_athle_record_page(bs(response.text, "lxml"))
+
+    if len(_records_cache) >= CACHE_MAX_ENTRIES:
+        # ponytail: éviction FIFO (ordre d'insertion du dict), suffit pour borner la RAM
+        _records_cache.pop(next(iter(_records_cache)), None)
+    _records_cache[url] = (time.monotonic(), records)
+    return records

@@ -2,6 +2,7 @@ import pytest
 from bs4 import BeautifulSoup as bs
 from fastapi import HTTPException
 
+from mypacer_api.core import scrapper
 from mypacer_api.core.scrapper import (
     ba_convert_time_to_seconds,
     parse_bases_athle_record_page,
@@ -144,10 +145,9 @@ def test_scrap_athlete_records_error(mocker):
     """
     Test that scrap_athlete_records raises an HTTPException for non-200 responses.
     """
-    # Mock the requests.get call
     mock_response = mocker.Mock()
     mock_response.status_code = 404
-    mocker.patch("requests.get", return_value=mock_response)
+    mocker.patch.object(scrapper.SESSION, "get", return_value=mock_response)
 
     # Assert that an HTTPException is raised
     with pytest.raises(HTTPException) as excinfo:
@@ -155,3 +155,32 @@ def test_scrap_athlete_records_error(mocker):
 
     # Check that the status code of the exception is correct
     assert excinfo.value.status_code == 404
+
+
+def test_scrap_athlete_records_caches_successes_only(mocker):
+    """Un athlète déjà consulté ne repasse pas par athle.fr ; un échec n'est pas mis en cache."""
+    mocker.patch.dict(scrapper._records_cache, clear=True)
+    ok = mocker.Mock(status_code=200, text=HTML_RECORDS)
+    ko = mocker.Mock(status_code=503)
+    get = mocker.patch.object(scrapper.SESSION, "get", side_effect=[ko, ok])
+
+    with pytest.raises(HTTPException):
+        scrap_athlete_records("https://www.athle.fr/athletes/1")
+    first = scrap_athlete_records("https://www.athle.fr/athletes/1")
+    second = scrap_athlete_records("https://www.athle.fr/athletes/1")
+
+    assert first == second and first[10000] == 2403
+    assert get.call_count == 2
+
+
+def test_scrap_athlete_records_cache_expires(mocker):
+    mocker.patch.dict(scrapper._records_cache, clear=True)
+    ok = mocker.Mock(status_code=200, text=HTML_RECORDS)
+    get = mocker.patch.object(scrapper.SESSION, "get", return_value=ok)
+    clock = mocker.patch("mypacer_api.core.scrapper.time.monotonic", return_value=0.0)
+
+    scrap_athlete_records("https://www.athle.fr/athletes/1")
+    clock.return_value = scrapper.CACHE_TTL_SECONDS + 1
+    scrap_athlete_records("https://www.athle.fr/athletes/1")
+
+    assert get.call_count == 2
