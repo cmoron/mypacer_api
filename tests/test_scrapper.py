@@ -126,6 +126,30 @@ def test_parse_bases_athle_record_page():
     assert records[10000] == 2403
 
 
+def _records_table(rows: list[tuple[str, str]]) -> bs:
+    cells = "".join(f"<tr><td>{event}</td><td>{perf}</td></tr>" for event, perf in rows)
+    html = f'<section data-content="section_5"><table class="base-table">{cells}</table></section>'
+    return bs(html, "lxml")
+
+
+def test_parse_track_and_short_track_labels_from_athle_fr():
+    """Libellés réels athle.fr : 10 000m piste et piste courte avec espace des milliers."""
+    records = parse_bases_athle_record_page(
+        _records_table(
+            [
+                ("10 000m", "26'58''67"),
+                ("10 Km Route", "27'07''"),
+                ("1 000m Piste Courte", "3'23''35"),
+                ("5 000m Piste Courte", "15'54''92"),
+            ]
+        )
+    )
+
+    assert pytest.approx(records[10000], rel=1e-6) == 1618.67
+    assert pytest.approx(records[1000], rel=1e-6) == 203.35
+    assert pytest.approx(records[5000], rel=1e-6) == 954.92
+
+
 @pytest.mark.skip(reason="This test makes a real network request and can be flaky.")
 def test_scrap_athlete_records():
     """
