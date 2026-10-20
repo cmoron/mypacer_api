@@ -2,6 +2,8 @@
 This module contains functions that interact with the database.
 """
 
+import time
+
 import psycopg2
 from dotenv import load_dotenv
 
@@ -58,3 +60,19 @@ def get_database_status():
         if conn:
             # Return connection to pool instead of closing it
             database.release_connection(conn)
+
+
+# La base n'est rafraîchie qu'une fois par semaine : inutile de recompter
+# ~1 M de lignes (~0,5 s sur la prod) à chaque chargement de page.
+STATUS_TTL_SECONDS = 3600
+_status_cache: tuple[float, dict] | None = None
+
+
+def get_database_status_cached() -> dict:
+    """get_database_status() mis en cache STATUS_TTL_SECONDS."""
+    global _status_cache
+    if _status_cache and time.monotonic() - _status_cache[0] < STATUS_TTL_SECONDS:
+        return _status_cache[1]
+    status = get_database_status()
+    _status_cache = (time.monotonic(), status)
+    return status

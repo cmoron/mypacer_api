@@ -62,7 +62,7 @@ def test_database_status(mocker):
     """Test the /database_status endpoint, mocking the service layer."""
     mock_data = {"num_clubs": 10, "num_athletes": 100, "last_update": "2025-01-01"}
     mocker.patch(
-        "mypacer_api.services.database_service.get_database_status",
+        "mypacer_api.services.database_service.get_database_status_cached",
         return_value=mock_data,
     )
     response = client.get("/database_status")

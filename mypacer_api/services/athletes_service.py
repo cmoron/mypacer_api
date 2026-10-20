@@ -12,6 +12,22 @@ from mypacer_api.core import database, scrapper
 
 load_dotenv()
 
+ATHLETE_COLUMNS = "id, ffa_id, name, url, birth_date, license_id, sexe, nationality"
+
+# Index btree text_pattern_ops (idx_athletes_normalized_name_prefix) : parcours
+# ordonné, quelques ms même pour « mar » qui matche ~60 000 noms en flou.
+PREFIX_QUERY = f"""
+SELECT {ATHLETE_COLUMNS}, similarity(normalized_name, %s) AS score
+FROM athletes
+WHERE normalized_name LIKE %s
+ORDER BY normalized_name USING ~<~
+LIMIT %s
+"""
+
+
+def _like_escape(text: str) -> str:
+    return text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
 
 def get_athletes_from_db(name: str, limit: int = 25, offset: int = 0) -> list:
     """
@@ -40,8 +56,20 @@ def get_athletes_from_db(name: str, limit: int = 25, offset: int = 0) -> list:
         # Normalize search query (same logic as database normalize_text function)
         normalized_query = " ".join(unidecode(name).lower().strip().split())
         query_parts = normalized_query.split()
+        if not query_parts:
+            return []
 
-        # Build WHERE clause using normalized_name and ILIKE for trigram index usage
+        # Saisie courte ou nom de famille : les noms commençant par la saisie
+        # suffisent à remplir la page, sans le tri flou qui relit chaque match.
+        if offset == 0:
+            cursor.execute(
+                PREFIX_QUERY,
+                [normalized_query, _like_escape(normalized_query) + "%", limit],
+            )
+            results = cursor.fetchall()
+            if len(results) == limit:
+                return results
+
         # Each word must be found in the normalized_name (AND logic)
         where_clause = " AND ".join(["normalized_name ILIKE %s" for _ in query_parts])
 
@@ -51,14 +79,7 @@ def get_athletes_from_db(name: str, limit: int = 25, offset: int = 0) -> list:
         # 3. ILIKE operator (uses trigram index when available)
         query = f"""
         SELECT
-            id,
-            ffa_id,
-            name,
-            url,
-            birth_date,
-            license_id,
-            sexe,
-            nationality,
+            {ATHLETE_COLUMNS},
             similarity(normalized_name, %s) AS score
         FROM athletes
         WHERE {where_clause}
@@ -67,7 +88,7 @@ def get_athletes_from_db(name: str, limit: int = 25, offset: int = 0) -> list:
         """
 
         # Prepare search patterns for ILIKE (% wildcards for fuzzy matching)
-        search_patterns = [f"%{part}%" for part in query_parts]
+        search_patterns = [f"%{_like_escape(part)}%" for part in query_parts]
 
         # Add the full normalized query for similarity calculation
         params = [normalized_query] + search_patterns + [limit, offset]

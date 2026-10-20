@@ -186,4 +186,4 @@ def database_status():
         dict: A dictionary containing the number of clubs, number of athletes,
               and the date of the last update.
     """
-    return database_service.get_database_status()
+    return database_service.get_database_status_cached()

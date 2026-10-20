@@ -77,6 +77,8 @@ CREATE INDEX IF NOT EXISTS idx_athletes_license_id ON athletes(license_id)
 CREATE INDEX IF NOT EXISTS idx_athletes_normalized_name_trgm ON athletes
     USING GIN (normalized_name gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_athletes_normalized_name ON athletes(normalized_name);
+-- Recherche par préfixe (LIKE 'mar%' + ORDER BY ... USING ~<~) côté API
+CREATE INDEX IF NOT EXISTS idx_athletes_normalized_name_prefix ON athletes(normalized_name text_pattern_ops);
 CREATE INDEX IF NOT EXISTS idx_athletes_sexe ON athletes(sexe) WHERE sexe IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_athletes_birth_date ON athletes(birth_date) WHERE birth_date IS NOT NULL;
 
