@@ -14,9 +14,9 @@ from fastapi import HTTPException
 SESSION = requests.Session()
 SESSION.headers["User-Agent"] = "MyPacer/1.0 (+https://mypacer.fr; contact@mypacer.fr)"
 
-# Les records changent au plus quelques fois par saison : un athlète déjà
-# consulté (comparaison, retour arrière) ne repasse pas par athle.fr.
-CACHE_TTL_SECONDS = 24 * 3600
+# Un athlète déjà consulté (comparaison, retour arrière) ne repasse pas par
+# athle.fr ; 1 h pour qu'un record tout juste battu apparaisse vite.
+CACHE_TTL_SECONDS = 3600
 CACHE_MAX_ENTRIES = 5000
 _records_cache: dict[str, tuple[float, Dict[float, float]]] = {}
 
