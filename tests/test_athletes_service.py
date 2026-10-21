@@ -44,6 +44,7 @@ def test_full_prefix_page_skips_fuzzy_query(cursor):
     assert len(cur.executed) == 1
     query, params = cur.executed[0]
     assert "USING ~<~" in query
+    assert "AS club" in query
     assert params == ["mar", "mar%", 3]
     cur.release.assert_called_once()
 
