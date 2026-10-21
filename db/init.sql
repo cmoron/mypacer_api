@@ -56,6 +56,8 @@ CREATE TABLE IF NOT EXISTS athletes (
     birth_date TEXT,                          -- Année de naissance
     sexe TEXT,                                -- M/F
     nationality TEXT,                         -- Code pays (FRA, etc.)
+    club_ffa_id TEXT,                         -- Club de la dernière saison scrapée (clubs.ffa_id)
+    category TEXT,                            -- Catégorie FFA de cette saison (SE, ES, MA...)
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );

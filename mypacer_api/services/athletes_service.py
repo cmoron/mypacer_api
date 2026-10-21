@@ -12,7 +12,9 @@ from mypacer_api.core import database, scrapper
 
 load_dotenv()
 
-ATHLETE_COLUMNS = "id, ffa_id, name, url, birth_date, license_id, sexe, nationality"
+# Sous-requête club évaluée après le tri/LIMIT : seulement pour les lignes renvoyées.
+ATHLETE_COLUMNS = """id, ffa_id, name, url, birth_date, license_id, sexe, nationality, category,
+(SELECT c.name FROM clubs c WHERE c.ffa_id = athletes.club_ffa_id) AS club"""
 
 # Index btree text_pattern_ops (idx_athletes_normalized_name_prefix) : parcours
 # ordonné, quelques ms même pour « mar » qui matche ~60 000 noms en flou.
