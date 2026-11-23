@@ -32,6 +32,35 @@ def test_generate_table_invalid_pace_range():
     assert "Minimum pace must be more than maximum pace" in response.json()["detail"]
 
 
+def test_generate_table_rejects_oversized_range():
+    """Une plage démesurée figeait l'unique worker : elle doit être refusée."""
+    payload = {"min_pace": 1_500_000, "max_pace": 1, "increment": 1}
+    response = client.post("/generate_table", json=payload)
+    assert response.status_code == 400
+    assert "too large" in response.json()["detail"]
+
+
+def test_generate_table_rejects_too_many_distances():
+    """Le nombre de distances multiplie le coût de chaque ligne : il est borné."""
+    payload = {
+        "min_pace": 300,
+        "max_pace": 240,
+        "increment": 10,
+        "distances": list(range(1, 1002)),
+    }
+    response = client.post("/generate_table", json=payload)
+    assert response.status_code == 400
+    assert "too large" in response.json()["detail"]
+
+
+def test_generate_table_accepts_widest_ui_range():
+    """La plage par défaut du front (6'00 → 2'00, pas de 1 s) reste servie."""
+    payload = {"min_pace": 360, "max_pace": 120, "increment": 1}
+    response = client.post("/generate_table", json=payload)
+    assert response.status_code == 200
+    assert len(response.json()) == 241
+
+
 def test_get_athletes_from_db(mocker):
     """Test the /get_athletes_from_db endpoint, mocking the service layer."""
     mock_data = [{"id": "123", "name": "Test Athlete"}]

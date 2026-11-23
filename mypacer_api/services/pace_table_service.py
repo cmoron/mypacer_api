@@ -12,6 +12,12 @@ from mypacer_api.core import calculator
 _pace_table_cache: dict = {}
 _MAX_CACHE_SIZE = 100
 
+# Le calcul tourne dans la boucle d'événements de l'unique worker : une plage
+# non bornée fige toute l'API (recherche et /health compris). Le front demande
+# au plus 511 lignes (10'00 → 1'30 par pas de 1 s).
+MAX_ROWS = 1000
+MAX_DISTANCES = 100
+
 
 def _get_cache_key(
     min_pace: int, max_pace: int, increment: int, distances: list
@@ -51,6 +57,16 @@ def get_pace_table(
     if max_pace > min_pace:
         raise HTTPException(
             status_code=400, detail="Minimum pace must be more than maximum pace."
+        )
+
+    rows = (min_pace - max_pace) // increment + 1 if increment > 0 else 0
+    if rows > MAX_ROWS or len(distances) > MAX_DISTANCES:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Requested table is too large (max {MAX_ROWS} rows, "
+                f"{MAX_DISTANCES} distances)."
+            ),
         )
 
     # Check cache first
